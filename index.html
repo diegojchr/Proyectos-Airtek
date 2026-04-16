@@ -58,6 +58,7 @@ body {
 
 .shadow-sm { box-shadow: var(--shadow-sm); }
 .text-blue { color: var(--brand-accent) !important; }
+.text-red { color: #DC2626 !important; }
 .mt-2 { margin-top: 0.5rem; }
 
 /* Header */
@@ -1058,6 +1059,10 @@ body {
                                     <span>Unidades por Fuente (N+1):</span>
                                     <strong id="reqRectPorFuente">0</strong>
                                 </div>
+                                <div class="alert-info mt-2" id="alertRect" style="display:none; background-color: #FEF2F2; border-color: #FCA5A5;">
+                                    <i data-lucide="alert-triangle" style="color: #DC2626;"></i>
+                                    <p style="color: #991B1B;"><strong>Límite Superado:</strong> ETP23006 admite máx. 3 rectificadores. Carga excede capacidad del equipo.</p>
+                                </div>
                             </div>
                         </div>
                         
@@ -1093,9 +1098,13 @@ body {
                                     <span>Unidades por Fuente:</span>
                                     <strong class="text-blue" id="reqInv">0</strong>
                                 </div>
-                                <div class="alert-info mt-2">
+                                <div class="alert-info mt-2" id="infoInv">
                                     <i data-lucide="info"></i>
                                     <p>Capacidad para soportar el 100% de carga si falla la otra fuente.</p>
+                                </div>
+                                <div class="alert-info mt-2" id="alertInv" style="display:none; background-color: #FEF2F2; border-color: #FCA5A5;">
+                                    <i data-lucide="alert-triangle" style="color: #DC2626;"></i>
+                                    <p style="color: #991B1B;"><strong>Límite Superado:</strong> ETP23006 admite máx. 3 inversores. Carga AC excede soporte nominal.</p>
                                 </div>
                             </div>
                         </div>
@@ -1172,6 +1181,14 @@ function calcular() {
     let rectificadoresPorFuente = Math.ceil(Q_total / 80);
     if(rectificadoresPorFuente === 0 && Q_total > 0) rectificadoresPorFuente = 1;
 
+    const alertRect = document.getElementById('alertRect');
+    if (rectificadoresPorFuente > 3) {
+        rectificadoresPorFuente = 3;
+        if(alertRect) alertRect.style.display = 'inline-flex';
+    } else {
+        if(alertRect) alertRect.style.display = 'none';
+    }
+
     const rectificadoresTotalSistema = rectificadoresPorFuente * FUENTES;
 
     document.getElementById('reqRect').innerText = rectificadoresTotalSistema;
@@ -1198,7 +1215,17 @@ function calcular() {
 
     // Actualizar Dashboard
     document.getElementById('regAmp').innerText = corrientePorRectificador.toFixed(3) + ' A';
-    document.getElementById('regPorc').innerText = porcentajeRegulacion.toFixed(3) + '% ≈ ' + porcentajeRegRedondeado + '%';
+    
+    const regPorcEl = document.getElementById('regPorc');
+    regPorcEl.innerText = porcentajeRegulacion.toFixed(3) + '% ≈ ' + porcentajeRegRedondeado + '%';
+    if (porcentajeRegulacion > 100) {
+        regPorcEl.classList.remove('text-blue');
+        regPorcEl.classList.add('text-red');
+    } else {
+        regPorcEl.classList.add('text-blue');
+        regPorcEl.classList.remove('text-red');
+    }
+
     document.getElementById('regAC').innerText = consumoAC.toFixed(2) + ' A';
     document.getElementById('resACGrid').innerText = consumoAC.toFixed(2) + ' A';
     document.getElementById('resACTotalGrid').innerText = consumoACTotal.toFixed(2) + ' A';
@@ -1211,6 +1238,17 @@ function calcular() {
         
         // Inversores necesarios para soportar TODA la carga si la otra fuente falla
         let inversoresPorFuente = Math.ceil(cargaW / CAPACIDAD_INVERSOR);
+
+        const alertInv = document.getElementById('alertInv');
+        const infoInv = document.getElementById('infoInv');
+        if (inversoresPorFuente > 3) {
+            inversoresPorFuente = 3;
+            if(alertInv) alertInv.style.display = 'inline-flex';
+            if(infoInv) infoInv.style.display = 'none';
+        } else {
+            if(alertInv) alertInv.style.display = 'none';
+            if(infoInv) infoInv.style.display = 'inline-flex';
+        }
 
         document.getElementById('reqInv').innerText = inversoresPorFuente;
         cardInversores.style.display = 'flex'; // Usar flex para mantener layout de la card
