@@ -735,13 +735,14 @@ body {
     .page-header {
         flex-direction: column;
         align-items: stretch;
-        gap: 1rem;
+        gap: 1.25rem;
     }
     
     .title-section {
-        flex-direction: column;
+        flex-direction: row;
         align-items: flex-start;
         gap: 1rem;
+        flex: 1 1 auto; /* Elimina un error de flex-basis que causaba un espacio enorme */
     }
     
     .title-icon {
