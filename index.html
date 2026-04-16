@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora ETP23006 Airtek</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="wrapper">
+        <header class="app-header">
+            <div class="logo">
+                <i data-lucide="zap" class="brand-icon"></i>
+                <div class="brand-text">
+                    <span class="brand-name">AIRTEK</span>
+                    <span class="brand-sub">Energía</span>
+                </div>
+            </div>
+            <!-- Eliminada la sección de administrador y usuario -->
+        </header>
+
+        <main class="container">
+            <div class="page-header">
+                <div class="title-section">
+                    <div class="title-icon">
+                        <i data-lucide="battery-charging"></i>
+                    </div>
+                    <div>
+                        <h1>Calculadora ETP23006</h1>
+                        <p>Plataforma de cálculo de capacidades para rectificadores, inversores y modulación de carga (N+1)</p>
+                    </div>
+                </div>
+                <div class="status-badge">
+                    <i data-lucide="shield-check"></i>
+                    <span>Sistema de Doble Fuente (A y B) Seguro</span>
+                </div>
+            </div>
+
+            <div class="main-layout">
+                <div class="calculator-column">
+                    <section class="calculator-card shadow-sm">
+                        <div class="card-header">
+                            <div class="header-content">
+                                <i data-lucide="sliders-horizontal"></i>
+                                <h2>Parámetros de Configuración</h2>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-layout">
+                                <!-- Sección Energía -->
+                                <div class="input-section">
+                                    <h3 class="section-badge">1. Demanda de Energía</h3>
+                                    <div class="input-grid">
+                                        <div class="input-group">
+                                            <label for="tipoCarga">Tipo de Carga</label>
+                                            <div class="select-wrapper">
+                                                <select id="tipoCarga">
+                                                    <option value="DC">Carga DC (Solo Rectificadores)</option>
+                                                    <option value="AC">Carga AC (Requiere Inversores)</option>
+                                                </select>
+                                                <i data-lucide="chevron-down" class="select-icon"></i>
+                                            </div>
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="cargaW">Carga Total Requerida (W)</label>
+                                            <div class="input-wrapper">
+                                                <i data-lucide="activity" class="input-icon"></i>
+                                                <input type="number" id="cargaW" value="5000" min="0">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="section-divider"></div>
+
+                                <!-- Sección Respaldo -->
+                                <div class="input-section">
+                                    <h3 class="section-badge">2. Almacenamiento (Baterías)</h3>
+                                    <div class="input-grid">
+                                        <div class="input-group">
+                                            <label for="numBaterias">Módulos Pylontech (US/UP)</label>
+                                            <div class="input-wrapper">
+                                                <i data-lucide="layers" class="input-icon"></i>
+                                                <input type="number" id="numBaterias" value="4" min="0">
+                                            </div>
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="ampBateria">Amperaje de Carga (Por Batería)</label>
+                                            <div class="input-wrapper">
+                                                <i data-lucide="zap" class="input-icon"></i>
+                                                <input type="number" id="ampBateria" value="10" min="0">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="preview-column">
+                    <section class="results-dashboard" id="resultsDashboard">
+
+                <div class="summary-section shadow-sm">
+                    <div class="summary-header">
+                        <i data-lucide="bar-chart-2"></i>
+                        <h3>Análisis de Corriente (Por Fuente A/B)</h3>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <i data-lucide="zap" class="metric-icon"></i>
+                            <span class="label">Carga Activa (DC)</span>
+                            <span class="value" id="resCargaA">0 A</span>
+                        </div>
+                        <div class="metric-card">
+                            <i data-lucide="battery" class="metric-icon"></i>
+                            <span class="label">Carga de Baterías</span>
+                            <span class="value" id="resBatA">0 A</span>
+                        </div>
+                        <div class="metric-card total">
+                            <i data-lucide="battery-charging" class="metric-icon"></i>
+                            <span class="label">Total Baterías (A + B)</span>
+                            <span class="value" id="resBatTotal">0 A</span>
+                        </div>
+                        <div class="metric-card total">
+                            <i data-lucide="trending-up" class="metric-icon"></i>
+                            <span class="label">Req. Por Fuente</span>
+                            <span class="value" id="resTotalA">0 A</span>
+                        </div>
+                        <div class="metric-card total">
+                            <i data-lucide="layers" class="metric-icon"></i>
+                            <span class="label">Total Sistema (A + B)</span>
+                            <span class="value" id="resTotalDual">0 A</span>
+                        </div>
+                        <div class="metric-card">
+                            <i data-lucide="plug" class="metric-icon"></i>
+                            <span class="label">Entrada AC (Por Fuente)</span>
+                            <span class="value" id="resACGrid">0 A</span>
+                        </div>
+                        <div class="metric-card total">
+                            <i data-lucide="zap" class="metric-icon"></i>
+                            <span class="label">Total Entrada AC (A + B)</span>
+                            <span class="value" id="resACTotalGrid">0 A</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-header">
+                    <h2>Especificación de Equipamiento</h2>
+                    <p class="subtitle">Desglose de módulos recomendados según cálculo (Regla N+1)</p>
+                </div>
+
+                <div class="equipment-list">
+                    <!-- Rectificadores -->
+                    <div class="equipment-list-item shadow-sm">
+                        <div class="item-icon rect-icon">
+                            <i data-lucide="cpu"></i>
+                        </div>
+                        <div class="item-details">
+                            <div class="item-header">
+                                <h3>Módulo Rectificador HUAWEI R4875G5</h3>
+                                <span class="specs">48VDC / 75ADC</span>
+                            </div>
+                            <div class="item-metrics">
+                                <div class="metric-row highlight-row">
+                                    <span>Unidades Sistema Completo:</span>
+                                    <strong id="reqRect">0</strong>
+                                </div>
+                                <div class="metric-row">
+                                    <span>Unidades por Fuente (N+1):</span>
+                                    <strong id="reqRectPorFuente">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="config-side">
+                            <h4>Regulación del Grupo (Por Fuente)</h4>
+                            <div class="config-item">
+                                <span class="config-label">Corriente Asignada (Valor por módulo)</span>
+                                <strong id="regAmp">0 A</strong>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Carga de Trabajo del Grupo</span>
+                                <strong class="text-blue" id="regPorc">0%</strong>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Corriente total entrada AC (Por Fuente)</span>
+                                <strong id="regAC">0 A</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inversores -->
+                    <div class="equipment-list-item shadow-sm" id="cardInversores" style="display:none;">
+                        <div class="item-icon inv-icon">
+                            <i data-lucide="repeat"></i>
+                        </div>
+                        <div class="item-details">
+                            <div class="item-header">
+                                <h3>Módulo Inversor HUAWEI I23003G1</h3>
+                                <span class="specs">3KVA / 230VAC</span>
+                            </div>
+                            <div class="item-metrics">
+                                <div class="metric-row highlight-row">
+                                    <span>Unidades por Fuente:</span>
+                                    <strong class="text-blue" id="reqInv">0</strong>
+                                </div>
+                                <div class="alert-info mt-2">
+                                    <i data-lucide="info"></i>
+                                    <p>Capacidad para soportar el 100% de carga si falla la otra fuente.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chasis -->
+                    <div class="equipment-list-item shadow-sm">
+                        <div class="item-icon chassis-icon">
+                            <i data-lucide="server"></i>
+                        </div>
+                        <div class="item-details">
+                            <div class="item-header">
+                                <h3>Chasis de Fuente HUAWEI ETP23006-C3A1</h3>
+                                <span class="specs">Rack Principal</span>
+                            </div>
+                            <div class="item-metrics">
+                                <div class="metric-row highlight-row">
+                                    <span>Sistemas Requeridos:</span>
+                                    <strong id="reqChasis">2 Fuentes (A y B)</strong>
+                                </div>
+                                <div class="alert-info mt-2">
+                                    <i data-lucide="check-circle"></i>
+                                    <p>Implementación N+1 para redundancia física garantizada ante fallos catastróficos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+        // Wrapper for the calculation so Lucide isn't broken
+        const originalCalcular = calcular;
+        calcular = function() {
+            originalCalcular();
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
