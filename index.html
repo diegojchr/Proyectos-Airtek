@@ -1182,19 +1182,11 @@ function calcular() {
     let N_rectificadores = Math.ceil(corrienteTotalPorFuente / 80);
     if (N_rectificadores === 0 && corrienteTotalPorFuente > 0) N_rectificadores = 1;
 
-    // "si con 2 rectificadores te da para la carga ... entonces no sumes una mas"
+    // Ajuste: "si solo necesitas un rectificador para toda la carga no necesitas colocar 2"
     let rectificadoresPorFuente = N_rectificadores;
     
-    // Lógica N+1:
-    if (N_rectificadores === 1 && Q_total > 0) {
-        rectificadoresPorFuente = 2; // Si se requiere 1, brindamos 2 para redundancia.
-    } 
-    else if (N_rectificadores === 2) {
-        rectificadoresPorFuente = 2; // Si con 2 es suficiente, no sumamos una más.
-    }
-    
     const alertRect = document.getElementById('alertRect');
-    if (rectificadoresPorFuente > 3 || N_rectificadores > 3) {
+    if (rectificadoresPorFuente > 3) {
         rectificadoresPorFuente = 3;
         if(alertRect) alertRect.style.display = 'inline-flex';
     } else {
