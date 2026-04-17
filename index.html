@@ -954,7 +954,7 @@ body {
                                             <label for="cargaW">Carga Total Requerida (W)</label>
                                             <div class="input-wrapper">
                                                 <i data-lucide="activity" class="input-icon"></i>
-                                                <input type="number" id="cargaW" value="5000" min="0" inputmode="decimal">
+                                                <input type="number" id="cargaW" value="" min="0" inputmode="decimal" placeholder="Ej: 5800">
                                             </div>
                                         </div>
                                     </div>
@@ -970,14 +970,14 @@ body {
                                             <label for="numBaterias">Módulos Pylontech (US/UP)</label>
                                             <div class="input-wrapper">
                                                 <i data-lucide="layers" class="input-icon"></i>
-                                                <input type="number" id="numBaterias" value="4" min="0" inputmode="decimal">
+                                                <input type="number" id="numBaterias" value="" min="0" inputmode="decimal" placeholder="Ej: 6">
                                             </div>
                                         </div>
                                         <div class="input-group">
                                             <label for="ampBateria">Amperaje de Carga (Por Batería)</label>
                                             <div class="input-wrapper">
                                                 <i data-lucide="zap" class="input-icon"></i>
-                                                <input type="number" id="ampBateria" value="10" min="0" inputmode="decimal">
+                                                <input type="number" id="ampBateria" value="" min="0" inputmode="decimal" placeholder="Ej: 10">
                                             </div>
                                         </div>
                                     </div>
@@ -1177,23 +1177,21 @@ function calcular() {
     // --- 2. Especificación de Equipamiento (Rectificadores) ---
     
     // Cada fuente cuenta con dos rectificadores
-    // Matemáticamente calculamos la cantidad estricta (N) usando la capacidad pico (80A al 121%):
-    let N_rectificadores = Math.ceil(Q_total / 80);
-    if (N_rectificadores === 0 && Q_total > 0) N_rectificadores = 1;
+    // Matemáticamente calculamos la cantidad estricta (N) usando la capacidad pico (80A al 121%)
+    // basándonos en la corriente requerida *por fuente*.
+    let N_rectificadores = Math.ceil(corrienteTotalPorFuente / 80);
+    if (N_rectificadores === 0 && corrienteTotalPorFuente > 0) N_rectificadores = 1;
 
-    // Aplicamos la lógica solicitada para N+1:
     // "si con 2 rectificadores te da para la carga ... entonces no sumes una mas"
     let rectificadoresPorFuente = N_rectificadores;
     
-    // Si solo necesitamos 1, sumamos 1 por redundancia (Regla N+1) -> 2
-    if (N_rectificadores === 1) {
-        rectificadoresPorFuente = 2;
+    // Lógica N+1:
+    if (N_rectificadores === 1 && Q_total > 0) {
+        rectificadoresPorFuente = 2; // Si se requiere 1, brindamos 2 para redundancia.
     } 
-    // Si necesitamos 2, NO sumamos uno más, lo dejamos en 2 según tu solicitud.
     else if (N_rectificadores === 2) {
-        rectificadoresPorFuente = 2;
+        rectificadoresPorFuente = 2; // Si con 2 es suficiente, no sumamos una más.
     }
-    // Para cargas mayores, limitamos a la capacidad máxima del chasis
     
     const alertRect = document.getElementById('alertRect');
     if (rectificadoresPorFuente > 3 || N_rectificadores > 3) {
