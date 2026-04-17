@@ -1177,12 +1177,26 @@ function calcular() {
     // --- 2. Especificación de Equipamiento (Rectificadores) ---
     
     // Cada fuente cuenta con dos rectificadores
-    // Matemáticamente para sostener Q_total (151.1A) si falla una fuente, usando la capacidad pico (80A al 121%):
-    let rectificadoresPorFuente = Math.ceil(Q_total / 80);
-    if(rectificadoresPorFuente === 0 && Q_total > 0) rectificadoresPorFuente = 1;
+    // Matemáticamente calculamos la cantidad estricta (N) usando la capacidad pico (80A al 121%):
+    let N_rectificadores = Math.ceil(Q_total / 80);
+    if (N_rectificadores === 0 && Q_total > 0) N_rectificadores = 1;
 
+    // Aplicamos la lógica solicitada para N+1:
+    // "si con 2 rectificadores te da para la carga ... entonces no sumes una mas"
+    let rectificadoresPorFuente = N_rectificadores;
+    
+    // Si solo necesitamos 1, sumamos 1 por redundancia (Regla N+1) -> 2
+    if (N_rectificadores === 1) {
+        rectificadoresPorFuente = 2;
+    } 
+    // Si necesitamos 2, NO sumamos uno más, lo dejamos en 2 según tu solicitud.
+    else if (N_rectificadores === 2) {
+        rectificadoresPorFuente = 2;
+    }
+    // Para cargas mayores, limitamos a la capacidad máxima del chasis
+    
     const alertRect = document.getElementById('alertRect');
-    if (rectificadoresPorFuente > 3) {
+    if (rectificadoresPorFuente > 3 || N_rectificadores > 3) {
         rectificadoresPorFuente = 3;
         if(alertRect) alertRect.style.display = 'inline-flex';
     } else {
