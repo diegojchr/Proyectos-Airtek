@@ -1344,13 +1344,14 @@ function calcular() {
     
     // --- 4. Corriente total de entrada AC al momento de cargar ---
     
-    // El chasis ETP23006 tiene un consumo AC máximo estructural de 41_Amp (TOTAL del chasis).
-    // Por lo tanto, el consumo máximo por fuente es 41_Amp / 2 = 20.5_Amp.
-    const MAX_AC_CHASIS = 41;
-    const MAX_AC_POR_FUENTE = MAX_AC_CHASIS / FUENTES; // 20.5A
+    // Cada módulo rectificador individual consume un máximo de 20.5_Amp AC al 121% de capacidad.
+    const MAX_AC_POR_MODULO = 20.5;
     
-    // I_total = (58% * 20.5_Amp) / 121% = 9.82_Amp X Fuente ETP23006
-    const consumoAC = (porcentajeRegRedondeado * MAX_AC_POR_FUENTE) / 121;
+    // Consumo AC individual = (%Reg * 20.5) / 121
+    const consumoAcPorModulo = (porcentajeRegRedondeado * MAX_AC_POR_MODULO) / 121;
+    
+    // Consumo AC de la fuente = consumo individual * módulos activos en dicha fuente
+    const consumoAC = consumoAcPorModulo * rectificadoresPorFuente;
     const consumoACTotal = consumoAC * FUENTES;
 
     // Actualizar Dashboard
