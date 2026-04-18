@@ -891,6 +891,86 @@ body {
         width: 100%;
     }
 }
+
+    /* Selector de Rectificadores interactivo */
+    .rectifier-selector {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 0.75rem;
+    }
+    
+    .rect-option {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1 1 100px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        outline: none;
+        user-select: none;
+    }
+    
+    .rect-option:hover {
+        border-color: var(--brand-accent);
+        background: var(--brand-light);
+    }
+    
+    .rect-option.active {
+        border-color: var(--brand-primary);
+        background: rgba(0, 70, 173, 0.05);
+        box-shadow: 0 0 0 2px rgba(0, 70, 173, 0.2);
+    }
+    
+    .rect-option.overload {
+        border-color: #FCA5A5;
+        background: #FEF2F2;
+    }
+    
+    .rect-option.overload:hover {
+        border-color: #EF4444;
+    }
+
+    .rect-option.active.overload {
+        border-color: #DC2626;
+        box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+        background: #FEF2F2;
+    }
+    
+    .rect-count {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 0.2rem;
+    }
+    
+    .rect-perc {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--brand-primary);
+    }
+    
+    .rect-option.overload .rect-perc {
+        color: #DC2626;
+    }
+    .rect-option.overload .rect-count {
+        color: #991B1B;
+    }
+
+    .metric-row.col-dir {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
 </style>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -1051,17 +1131,19 @@ body {
                                 <span class="specs">48VDC / 75ADC</span>
                             </div>
                             <div class="item-metrics">
-                                <div class="metric-row highlight-row">
-                                    <span>Unidades Sistema Completo:</span>
+                                <div class="metric-row highlight-row" style="margin-bottom: 0.5rem;">
+                                    <span>Sistema Completo:</span>
                                     <strong id="reqRect">0</strong>
                                 </div>
-                                <div class="metric-row">
-                                    <span>Unidades por Fuente (N+1):</span>
-                                    <strong id="reqRectPorFuente">0</strong>
+                                <div class="metric-row col-dir">
+                                    <span>Selecciona configuración (Por Fuente):</span>
+                                    <div class="rectifier-selector" id="rectifierOptions">
+                                        <!-- Opciones Inyectadas vía JS -->
+                                    </div>
                                 </div>
-                                <div class="alert-info mt-2" id="alertRect" style="display:none; background-color: #FEF2F2; border-color: #FCA5A5;">
+                                <div class="alert-info mt-2" id="alertRect" style="display:none; background-color: #FEF2F2; border-color: #FCA5A5; width: 100%;">
                                     <i data-lucide="alert-triangle" style="color: #DC2626;"></i>
-                                    <p style="color: #991B1B;"><strong>Límite Superado:</strong> ETP23006 admite máx. 3 rectificadores. Carga excede capacidad del equipo.</p>
+                                    <p style="color: #991B1B;" id="alertRectMsg"><strong>Advertencia:</strong> Esta configuración está sobrecargada.</p>
                                 </div>
                             </div>
                         </div>
@@ -1140,6 +1222,8 @@ body {
     </div>
 
     <script>
+let userSelectedRectifiers = 0; // 0 means Auto-select
+
 function calcular() {
     // 1. Obtener los valores del usuario
     const tipoCarga = document.getElementById('tipoCarga').value;
@@ -1179,24 +1263,73 @@ function calcular() {
     // Cada fuente cuenta con dos rectificadores
     // Matemáticamente calculamos la cantidad estricta (N) usando la capacidad pico (80A al 121%)
     // basándonos en la corriente requerida *por fuente*.
-    let N_rectificadores = Math.ceil(corrienteTotalPorFuente / 80);
-    if (N_rectificadores === 0 && corrienteTotalPorFuente > 0) N_rectificadores = 1;
+    // Cantidad requerida ideal (sin exceder 121% aprox)
+    let autoSelected = Math.ceil(corrienteTotalPorFuente / 80);
+    if (autoSelected === 0 && corrienteTotalPorFuente > 0) autoSelected = 1;
+    if (autoSelected > 3) autoSelected = 3;
 
-    // Ajuste: "si solo necesitas un rectificador para toda la carga no necesitas colocar 2"
-    let rectificadoresPorFuente = N_rectificadores;
+    // Usar la selección manual del usuario si existe, si no, usar la auto calculada
+    let rectificadoresPorFuente = userSelectedRectifiers > 0 ? userSelectedRectifiers : autoSelected;
+    
+    // Validar si la selección elegida es peligrosa
+    const hypotheticalRectAmp = (rectificadoresPorFuente > 0) ? (corrienteTotalPorFuente / rectificadoresPorFuente) : 0;
+    const hypotheticalRectPerc = (hypotheticalRectAmp * 121) / 80;
     
     const alertRect = document.getElementById('alertRect');
-    if (rectificadoresPorFuente > 3) {
-        rectificadoresPorFuente = 3;
-        if(alertRect) alertRect.style.display = 'inline-flex';
+    const alertRectMsg = document.getElementById('alertRectMsg');
+    
+    if (hypotheticalRectPerc > 120) {
+        if (alertRect) alertRect.style.display = 'inline-flex';
+        // Texto dinámico para sobrecarga
+        if (alertRectMsg) {
+            if (autoSelected > 3) {
+                alertRectMsg.innerHTML = '<strong>Límite Superado:</strong> ETP23006 admite máx. 3 rectificadores y la carga los excede.';
+            } else {
+                alertRectMsg.innerHTML = '<strong>Advertencia:</strong> Esta configuración está sobrecargada (> 120%).';
+            }
+        }
     } else {
-        if(alertRect) alertRect.style.display = 'none';
+        if (alertRect) alertRect.style.display = 'none';
     }
 
     const rectificadoresTotalSistema = rectificadoresPorFuente * FUENTES;
-
     document.getElementById('reqRect').innerText = rectificadoresTotalSistema;
-    document.getElementById('reqRectPorFuente').innerText = rectificadoresPorFuente;
+
+    // Renderizar opciones interactivas
+    const optionsContainer = document.getElementById('rectifierOptions');
+    if (optionsContainer) {
+        optionsContainer.innerHTML = '';
+        for (let i = 1; i <= 3; i++) {
+            const hAmp = (i > 0) ? (corrienteTotalPorFuente / i) : 0;
+            const hPerc = (hAmp * 121) / 80;
+            const isOverload = hPerc > 120;
+            const isActive = i === rectificadoresPorFuente;
+            
+            const btn = document.createElement('button');
+            // type button stops form submission just in case
+            btn.type = 'button'; 
+            btn.className = 'rect-option' + (isActive ? ' active' : '') + (isOverload ? ' overload' : '');
+            
+            const countSpan = document.createElement('span');
+            countSpan.className = 'rect-count';
+            countSpan.innerText = i + (i === 1 ? ' Mód' : ' Móds');
+            
+            const percSpan = document.createElement('span');
+            percSpan.className = 'rect-perc';
+            percSpan.innerText = Math.ceil(hPerc) + '%';
+            
+            btn.appendChild(countSpan);
+            btn.appendChild(percSpan);
+            
+            btn.onclick = () => {
+                userSelectedRectifiers = i;
+                calcular();
+                if (window.lucide) window.lucide.createIcons();
+            };
+            
+            optionsContainer.appendChild(btn);
+        }
+    }
 
     // --- 3. Porcentaje de Regulación ---
     
