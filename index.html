@@ -1211,10 +1211,13 @@ function calcular() {
     
     // --- 4. Corriente total de entrada AC al momento de cargar ---
     
-    // I_total = (58% * 41_Amp) / 121% = 19.65_Amp X Fuente ETP23006
-    // El chasis ETP23006 tiene un consumo AC máximo estructural de 41_Amp.
-    const CONSTANTE_AC_ETP23006 = 41;
-    const consumoAC = (porcentajeRegRedondeado * CONSTANTE_AC_ETP23006) / 121;
+    // El chasis ETP23006 tiene un consumo AC máximo estructural de 41_Amp (TOTAL del chasis).
+    // Por lo tanto, el consumo máximo por fuente es 41_Amp / 2 = 20.5_Amp.
+    const MAX_AC_CHASIS = 41;
+    const MAX_AC_POR_FUENTE = MAX_AC_CHASIS / FUENTES; // 20.5A
+    
+    // I_total = (58% * 20.5_Amp) / 121% = 9.82_Amp X Fuente ETP23006
+    const consumoAC = (porcentajeRegRedondeado * MAX_AC_POR_FUENTE) / 121;
     const consumoACTotal = consumoAC * FUENTES;
 
     // Actualizar Dashboard
